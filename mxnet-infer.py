@@ -1,49 +1,47 @@
 import mxnet as mx
+import mxnet.visualization as mxviz
 from mxnet.gluon.model_zoo import vision
 import gluoncv as gcv
-from gluoncv.utils import try_import_cv2
-#cv2 = try_import_cv2()
-import cv2
-from cv2 import VideoCapture
 from gluoncv.model_zoo import get_model
 from gluoncv.data import VOCDetection
-import json
-import time
 from gluoncv.utils import viz           # gluoncv specific visualization capabilities
 from gluoncv.utils import export_block
+import cv2
+from cv2 import VideoCapture
 from matplotlib import pyplot as plt
 import random
-import mxnet
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image, ImageEnhance
 import io
 import os
 import numpy as np
+import json
+import time
 
 
 net = None
 cap = None
 
-threshold = 0.35
+threshold = 0.75
 
-# don't touch!!! used to convert sagemaker's integer classes back to card values.
-#class_map = {"AC": 0, "2C": 1, "3C": 2, "4C": 3, "5C": 4, "6C": 5, "7C": 6, "8C": 7, "9C": 8, "10C": 9, "JC": 10, "QC": 11, "KC": 12, "AD": 13, "2D": 14, "3D": 15, "4D": 16, "5D": 17, "6D": 18, "7D": 19, "8D": 20, "9D": 21, "10D": 22, "JD":23, "QD": 24, "KD": 25, "AH": 26, "2H": 27, "3H": 28, "4H": 29, "5H": 30, "6H": 31, "7H": 32, "8H": 33, "9H": 34, "10H": 35, "JH": 36, "QH": 37, "KH": 38, "AS": 39, "2S": 40, "3S": 41, "4S": 42, "5S": 43, "6S": 44, "7S": 45, "8S": 46, "9S": 47, "10S": 48, "JS": 49, "QS": 50, "KS": 51}
-class_map = {"ballpean": 0, "boxwrench": 1, "crafthammer": 2, "framinghammer": 3, "mallet": 4}
+
+class_map = {"AC": 0, "2C": 1, "3C": 2, "4C": 3, "5C": 4, "6C": 5, "7C": 6, "8C": 7, "9C": 8, "10C": 9, "JC": 10, "QC": 11, "KC": 12, "AD": 13, "2D": 14, "3D": 15, "4D": 16, "5D": 17, "6D": 18, "7D": 19, "8D": 20, "9D": 21, "10D": 22, "JD":23, "QD": 24, "KD": 25, "AH": 26, "2H": 27, "3H": 28, "4H": 29, "5H": 30, "6H": 31, "7H": 32, "8H": 33, "9H": 34, "10H": 35, "JH": 36, "QH": 37, "KH": 38, "AS": 39, "2S": 40, "3S": 41, "4S": 42, "5S": 43, "6S": 44, "7S": 45, "8S": 46, "9S": 47, "10S": 48, "JS": 49, "QS": 50, "KS": 51}
+#class_map = {"crafthammer": 0}
 
 
 object_categories = list(class_map.keys())
-#klasses = ["ac", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "jc", "qc", "kc", "ad", "2d", "3d", "4d", "5d",
-#           "6d", "7d", "8d", "9d", "10d", "jd", "qd", "kd", "ah", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h",
-#           "jh", "qh", "kh", "as", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "js", "qs", "ks"]
+klasses = ["ac", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "jc", "qc", "kc", "ad", "2d", "3d", "4d", "5d",
+           "6d", "7d", "8d", "9d", "10d", "jd", "qd", "kd", "ah", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h",
+           "jh", "qh", "kh", "as", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "js", "qs", "ks"]
 
-klasses = ["ballpean", "boxwrench", "crafthammer", "framinghammer", "mallet"]
+#klasses = ["crafthammer"]
 
 num_classes = [str(x) for x in range(len(klasses))]
 
 class VOCLike(VOCDetection):
-    #CLASSES = ["ac", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "jc", "qc", "kc", "ad", "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "jd", "qd", "kd", "ah", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "jh", "qh", "kh", "as", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "js", "qs", "ks"]
-    CLASSES = ["ballpean", "boxwrench", "crafthammer", "framinghammer", "mallet"]
+    CLASSES = ["ac", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "jc", "qc", "kc", "ad", "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "jd", "qd", "kd", "ah", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "jh", "qh", "kh", "as", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "js", "qs", "ks"]
+    #CLASSES = ["crafthammer"]
     def __init__(self, root, splits, transform=None, index_map=None, preload_label=True):
         super(VOCLike, self).__init__(root, splits, transform, index_map, preload_label)
 
@@ -54,13 +52,13 @@ def model_fn():
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
-    #net = get_model("ssd_512_mobilenet1.0_custom", classes = num_classes, ctx=mx.gpu(0))
-    #net.load_parameters('sobilenet-0000.params')
-    #net.collect_params().reset_ctx(mx.gpu(0))
+    #net_sym = mx.sym.load('ssd_-symbol.json')
+    #net = mx.gluon.SymbolBlock(net_sym, mx.sym.var('data'))
+    #net.load_params('yolo3_mobilenet1_assorted_tools-0000.params', ctx=mx.gpu(0))
 
-    net_sym = mx.sym.load('yolo3_mobilenet1_odin_hammertime-symbol.json')
-    net = mxnet.gluon.SymbolBlock(net_sym, mx.sym.var('data'))
-    net.load_params('yolo3_mobilenet1_odin_hammertime-0000.params', ctx=mx.gpu(0))
+    net_sym = mx.sym.load('sobilenet-symbol.json')
+    net = mx.gluon.SymbolBlock(net_sym, mx.sym.var('data'))
+    net.load_params('sobilenet-0000.params', ctx=mx.gpu(0))
 
     net.hybridize()
     return net
@@ -101,7 +99,7 @@ def visualize(index, img, dets, classes=[], thresh=0.50):
     #              "3S": 41, "4S": 42, "5S": 43, "6S": 44, "7S": 45, "8S": 46, "9S": 47, "10S": 48, "JS": 49, "QS": 50,
     #              "KS": 51}
 
-    class_map = {"ballpean": 0, "boxwrench": 1, "crafthammer": 2, "framinghammer": 3, "mallet": 4}
+    #class_map = {"ballpean": 0, "boxwrench": 1, "crafthammer": 2, "framinghammer": 3, "mallet": 4}
 
     object_categories = list(class_map.keys())
     img = Image.fromarray(img)
@@ -152,16 +150,15 @@ def visualize(index, img, dets, classes=[], thresh=0.50):
 
 def create_symbols():
 
-    my_net = get_model('yolo3_mobilenet1.0_custom', pretrained=False, classes=klasses, ctx=mx.gpu(0))
-    my_net.load_parameters('yolo3_mobilenet1.0_odin_hammertime.params', ctx=mx.gpu(0))
+    my_net = get_model('ssd_512_mobilenet1.0_custom', pretrained=False, classes=klasses, ctx=mx.gpu(0))
+    my_net.load_parameters('ssd_512_mobilenet1.0_custom_best.params', ctx=mx.gpu(0))
 
     # Convert the model to symbolic format
     my_net.hybridize()
-    my_net(mx.nd.ones((1,3,608,608)).as_in_context(mx.gpu(0)))
+    my_net(mx.nd.ones((1, 3, 512, 512)).as_in_context(mx.gpu(0)))
 
     # Export the model
-
-    my_net.export('yolo3_mobilenet1_odin_hammertime')
+    my_net.export('ssd_512_resnet-mobilenet')
 
 
 def infer():
@@ -188,14 +185,14 @@ def infer():
             index += 1
 
 
-
 def prepare_stream():
     global net
     net = model_fn()
 
 def stream():
+    prepare_stream()
     global net, cap
-    cap = VideoCapture(4)
+    cap = VideoCapture(2)
     time.sleep(1)
     while(True):
 
@@ -203,16 +200,17 @@ def stream():
         ret, frame = cap.read()
 
         # Image pre-processing
-
         frame = mx.nd.array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).astype('uint8')
 
         # Apply GluonCV pre-processing
-
-        rgb_nd, scaled_frame = gcv.data.transforms.presets.yolo.transform_test(frame, short=608, max_size=1024)
+        #rgb_nd, scaled_frame = gcv.data.transforms.presets.yolo.transform_test(frame, short=608, max_size=1024)
+        rgb_nd, scaled_frame = gcv.data.transforms.presets.ssd.transform_test(frame, short=512, max_size=1024)
 
         # Run inference on the frame
         class_IDs, scores, bounding_boxes = net(rgb_nd.as_in_context(mx.gpu(0)))
         scale = 1.0 * frame.shape[0] / scaled_frame.shape[0]
+
+
         img = gcv.utils.viz.cv_plot_bbox(frame.asnumpy(), bounding_boxes[0], scores[0], class_IDs[0],
                                         class_names=klasses, scale=scale)
         gcv.utils.viz.cv_plot_image(img)
@@ -226,8 +224,6 @@ def stream():
     cv2.destroyAllWindows()
 
 
-
 #infer()
 #create_symbols()
-prepare_stream()
 stream()

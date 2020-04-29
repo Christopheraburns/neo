@@ -41,8 +41,6 @@ else:
 	class_map = cardbot_map
 
 
-
-
 def main():
 	results_txt = open(os.path.join(out_path, 'results.txt'), 'w')
 	for image_filename in os.listdir(val_path):
