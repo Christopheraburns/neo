@@ -26,7 +26,11 @@ cap = None
 threshold = 0.75
 
 
-class_map = {"AC": 0, "2C": 1, "3C": 2, "4C": 3, "5C": 4, "6C": 5, "7C": 6, "8C": 7, "9C": 8, "10C": 9, "JC": 10, "QC": 11, "KC": 12, "AD": 13, "2D": 14, "3D": 15, "4D": 16, "5D": 17, "6D": 18, "7D": 19, "8D": 20, "9D": 21, "10D": 22, "JD":23, "QD": 24, "KD": 25, "AH": 26, "2H": 27, "3H": 28, "4H": 29, "5H": 30, "6H": 31, "7H": 32, "8H": 33, "9H": 34, "10H": 35, "JH": 36, "QH": 37, "KH": 38, "AS": 39, "2S": 40, "3S": 41, "4S": 42, "5S": 43, "6S": 44, "7S": 45, "8S": 46, "9S": 47, "10S": 48, "JS": 49, "QS": 50, "KS": 51}
+class_map = {"AC": 0, "2C": 1, "3C": 2, "4C": 3, "5C": 4, "6C": 5, "7C": 6, "8C": 7, "9C": 8, "10C": 9, "JC": 10,
+             "QC": 11, "KC": 12, "AD": 13, "2D": 14, "3D": 15, "4D": 16, "5D": 17, "6D": 18, "7D": 19, "8D": 20,
+             "9D": 21, "10D": 22, "JD":23, "QD": 24, "KD": 25, "AH": 26, "2H": 27, "3H": 28, "4H": 29, "5H": 30,
+             "6H": 31, "7H": 32, "8H": 33, "9H": 34, "10H": 35, "JH": 36, "QH": 37, "KH": 38, "AS": 39, "2S": 40,
+             "3S": 41, "4S": 42, "5S": 43, "6S": 44, "7S": 45, "8S": 46, "9S": 47, "10S": 48, "JS": 49, "QS": 50, "KS": 51}
 #class_map = {"crafthammer": 0}
 
 
@@ -150,7 +154,7 @@ def visualize(index, img, dets, classes=[], thresh=0.50):
 
 def create_symbols():
 
-    my_net = get_model('ssd_512_mobilenet1.0_custom', pretrained=False, classes=klasses, ctx=mx.gpu(0))
+    my_net = get_model('ssd_512_mobilenet_custom', pretrained=False, classes=klasses, ctx=mx.gpu(0))
     my_net.load_parameters('ssd_512_mobilenet1.0_custom_best.params', ctx=mx.gpu(0))
 
     # Convert the model to symbolic format
@@ -225,5 +229,5 @@ def stream():
 
 
 #infer()
-#create_symbols()
-stream()
+create_symbols()
+#stream()
